@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>直播预告计时 + 生日预告</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-blue-600 to-purple-600 text-white font-sans text-center p-4">
+
+  <!-- 主标题 -->
+  <h1 class="text-4xl md:text-6xl font-bold mb-6">⏳ 距离首次直播倒计时</h1>
+  <p id="target-date" class="text-lg mb-8"></p>
+
+  <!-- 主倒计时 -->
+  <div class="grid grid-cols-4 gap-4 text-center mb-8" id="countdown-grid">
+    <div class="bg-white/20 rounded-2xl p-6">
+      <p id="days" class="text-5xl font-bold">0</p>
+      <p class="text-sm mt-2">天</p>
+    </div>
+    <div class="bg-white/20 rounded-2xl p-6">
+      <p id="hours" class="text-5xl font-bold">0</p>
+      <p class="text-sm mt-2">小时</p>
+    </div>
+    <div class="bg-white/20 rounded-2xl p-6">
+      <p id="minutes" class="text-5xl font-bold">0</p>
+      <p class="text-sm mt-2">分钟</p>
+    </div>
+    <div class="bg-white/20 rounded-2xl p-6">
+      <p id="seconds" class="text-5xl font-bold">0</p>
+      <p class="text-sm mt-2">秒</p>
+    </div>
+  </div>
+
+  <!-- 主进度条 -->
+  <div class="w-full max-w-xl bg-white/20 rounded-full h-4 mb-6 overflow-hidden">
+    <div id="progress-bar" class="bg-green-400 h-4 rounded-full transition-all duration-1000" style="width: 0%;"></div>
+  </div>
+  <p id="progress-text" class="text-sm opacity-80 mb-10"></p>
+
+  <!-- 副计时 -->
+  <h2 class="text-2xl font-bold mb-2">📅水喝千束生日倒计时</h2>
+  <p id="sub-target-date" class="text-base mb-6"></p>
+
+  <div class="grid grid-cols-4 gap-4 text-center mb-10" id="sub-grid">
+    <div class="bg-white/20 rounded-2xl p-4">
+      <p id="sub-days" class="text-3xl font-bold">0</p>
+      <p class="text-xs mt-1">天</p>
+    </div>
+    <div class="bg-white/20 rounded-2xl p-4">
+      <p id="sub-hours" class="text-3xl font-bold">0</p>
+      <p class="text-xs mt-1">小时</p>
+    </div>
+    <div class="bg-white/20 rounded-2xl p-4">
+      <p id="sub-minutes" class="text-3xl font-bold">0</p>
+      <p class="text-xs mt-1">分钟</p>
+    </div>
+    <div class="bg-white/20 rounded-2xl p-4">
+      <p id="sub-seconds" class="text-3xl font-bold">0</p>
+      <p class="text-xs mt-1">秒</p>
+    </div>
+  </div>
+
+  <!-- 结束提示 -->
+  <p id="end-text" class="text-2xl font-semibold mt-10 hidden">
+    🎉 倒计时结束啦！正在跳转...
+  </p>
+
+  <script>
+    // ==== 主计时 ====
+    const baseDate = new Date("2025-10-10T00:00:00");
+    const targetDate = new Date(baseDate);
+    targetDate.setDate(baseDate.getDate() + 1211); // 1210天后目标
+
+    document.getElementById("target-date").textContent = "主目标日期：" + targetDate.toLocaleDateString("zh-CN");
+
+    // ==== 副计时：每年2月2日 ====
+    function getNextFeb2() {
+      const now = new Date();
+      let year = now.getFullYear();
+      const feb2 = new Date(`${year}-02-02T00:00:00`);
+      // 如果今年2月2日已过，则目标为明年2月2日
+      if (now > feb2) {
+        year += 1;
+      }
+      return new Date(`${year}-02-02T00:00:00`);
+    }
+
+    let subTarget = getNextFeb2();
+
+    // 主更新函数
+    function updateCountdowns() {
+      const now = new Date();
+
+      // 主计时
+      const mainDiff = targetDate - now;
+      const mainTotal = targetDate - baseDate;
+      let progress = Math.min(((mainTotal - mainDiff) / mainTotal) * 100, 100);
+      if (progress < 0) progress = 0;
+
+      document.getElementById("progress-bar").style.width = progress.toFixed(2) + "%";
+      document.getElementById("progress-text").textContent = "主计时已完成 " + progress.toFixed(2) + "%";
+
+      if (mainDiff <= 0) {
+        document.getElementById("countdown-grid").classList.add("hidden");
+        document.getElementById("progress-text").classList.add("hidden");
+        document.getElementById("sub-grid").classList.add("hidden");
+        document.getElementById("end-text").classList.remove("hidden");
+
+        // 倒计时结束后跳转
+        setTimeout(() => {
+          window.location.href = "https://b23.tv/iISeLQJ";
+        }, 3000);
+        return;
+      }
+
+      const d = Math.floor(mainDiff / (1000 * 60 * 60 * 24));
+      const h = Math.floor((mainDiff / (1000 * 60 * 60)) % 24);
+      const m = Math.floor((mainDiff / (1000 * 60)) % 60);
+      const s = Math.floor((mainDiff / 1000) % 60);
+
+      document.getElementById("days").textContent = d;
+      document.getElementById("hours").textContent = h;
+      document.getElementById("minutes").textContent = m;
+      document.getElementById("seconds").textContent = s;
+
+      // ==== 副计时 ====
+      // 如果副计时目标已过，则更新为下一年
+      if (now > subTarget) {
+        subTarget = getNextFeb2();
+      }
+
+      const subDiff = subTarget - now;
+      const subDays = Math.floor(subDiff / (1000 * 60 * 60 * 24));
+      const subHours = Math.floor((subDiff / (1000 * 60 * 60)) % 24);
+      const subMinutes = Math.floor((subDiff / (1000 * 60)) % 60);
+      const subSeconds = Math.floor((subDiff / 1000) % 60);
+
+      document.getElementById("sub-target-date").textContent = "下一次目标日：" + subTarget.toLocaleDateString("zh-CN");
+      document.getElementById("sub-days").textContent = subDays;
+      document.getElementById("sub-hours").textContent = subHours;
+      document.getElementById("sub-minutes").textContent = subMinutes;
+      document.getElementById("sub-seconds").textContent = subSeconds;
+    }
+
+    updateCountdowns();
+    setInterval(updateCountdowns, 1000);
+  </script>
+
+</body>
+</html>
